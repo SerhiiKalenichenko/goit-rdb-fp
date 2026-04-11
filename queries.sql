@@ -38,7 +38,7 @@ WHERE NULLIF(TRIM(Entity), '') IS NOT NULL;
 CREATE TABLE infectious_cases_normalized (
     record_id INT NOT NULL AUTO_INCREMENT,
     entity_id INT NOT NULL,
-    Year INT NOT NULL,
+    Year VARCHAR(10),
     Number_yaws VARCHAR(50),
     polio_cases VARCHAR(50),
     cases_guinea_worm VARCHAR(50),
@@ -48,10 +48,7 @@ CREATE TABLE infectious_cases_normalized (
     Number_tuberculosis VARCHAR(50),
     Number_smallpox VARCHAR(50),
     Number_cholera_cases VARCHAR(50),
-    PRIMARY KEY (record_id),
-    CONSTRAINT fk_entity
-        FOREIGN KEY (entity_id)
-        REFERENCES entities(entity_id)
+    PRIMARY KEY (record_id)
 );
 
 INSERT INTO infectious_cases_normalized (
@@ -69,7 +66,7 @@ INSERT INTO infectious_cases_normalized (
 )
 SELECT
     e.entity_id,
-    CAST(TRIM(ic.Year) AS UNSIGNED),
+    ic.Year,
     ic.Number_yaws,
     ic.polio_cases,
     ic.cases_guinea_worm,
@@ -84,12 +81,12 @@ JOIN entities e
     ON TRIM(ic.Entity) = e.entity
    AND NULLIF(TRIM(ic.Code), '') <=> e.code;
 
-CREATE INDEX idx_entity_id
-    ON infectious_cases_normalized (entity_id);
+ALTER TABLE infectious_cases_normalized
+ADD CONSTRAINT fk_entity
+FOREIGN KEY (entity_id) REFERENCES entities(entity_id);
 
-CREATE INDEX idx_year
-    ON infectious_cases_normalized (Year);
-
+CREATE INDEX idx_entity_id ON infectious_cases_normalized(entity_id);
+CREATE INDEX idx_year ON infectious_cases_normalized(Year);
 
 -- =====================================================
 -- TASK 3: Аналітика Number_rabies
@@ -108,10 +105,7 @@ JOIN entities e
     ON icn.entity_id = e.entity_id
 WHERE NULLIF(TRIM(icn.Number_rabies), '') IS NOT NULL
   AND TRIM(icn.Number_rabies) REGEXP '^[0-9]+(\\.[0-9]+)?$'
-GROUP BY
-    e.entity_id,
-    e.entity,
-    e.code
+GROUP BY e.entity_id, e.entity, e.code
 ORDER BY avg_number_rabies DESC
 LIMIT 10;
 
@@ -121,15 +115,17 @@ LIMIT 10;
 -- =====================================================
 
 SELECT
-    Year AS source_year,
-    MAKEDATE(Year, 1) AS first_day_of_year,
+    `Year` AS source_year,
+    MAKEDATE(CAST(TRIM(`Year`) AS UNSIGNED), 1) AS first_day_of_year,
     CURDATE() AS current_date,
     TIMESTAMPDIFF(
         YEAR,
-        MAKEDATE(Year, 1),
+        MAKEDATE(CAST(TRIM(`Year`) AS UNSIGNED), 1),
         CURDATE()
     ) AS year_difference
-FROM infectious_cases_normalized;
+FROM infectious_cases_normalized
+WHERE NULLIF(TRIM(`Year`), '') IS NOT NULL
+  AND TRIM(`Year`) REGEXP '^[0-9]{4}$';
 
 
 -- =====================================================
@@ -155,6 +151,8 @@ END $$
 DELIMITER ;
 
 SELECT
-    Year AS source_year,
-    get_year_difference(Year) AS year_difference
-FROM infectious_cases_normalized;
+    `Year`,
+    get_year_difference(CAST(TRIM(`Year`) AS UNSIGNED)) AS year_difference
+FROM infectious_cases_normalized
+WHERE NULLIF(TRIM(`Year`), '') IS NOT NULL
+  AND TRIM(`Year`) REGEXP '^[0-9]{4}$';
