@@ -147,7 +147,7 @@ DELIMITER ;
 
 SELECT
     year_value,
-    get_year_difference(year_value) AS year_difference
+    get_year_difference(year_value) AS years_since_event
 FROM infectious_cases_normalized
 ORDER BY year_value
 LIMIT 20;
