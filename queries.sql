@@ -119,7 +119,7 @@ LIMIT 10;
 SELECT
     year_value,
     MAKEDATE(year_value, 1) AS first_day_of_year,
-    CURDATE() AS current_date,
+    CURDATE() AS `current_date`,
     TIMESTAMPDIFF(YEAR, MAKEDATE(year_value, 1), CURDATE()) AS year_difference
 FROM infectious_cases_normalized
 ORDER BY year_value
