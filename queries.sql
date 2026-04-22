@@ -115,13 +115,19 @@ LIMIT 10;
 -- TASK 4: Робота з датами та різницею років
 -- =====================================================
 
+ALTER TABLE infectious_cases_normalized
+ADD COLUMN year_difference INT NULL;
+
+UPDATE infectious_cases_normalized
+SET year_difference = TIMESTAMPDIFF(YEAR, MAKEDATE(year_value, 1), CURDATE());
+
 SELECT
+    record_id,
+    entity_id,
     year_value,
-    MAKEDATE(year_value, 1)                                     AS first_day_of_year,
-    CURDATE()                                                   AS today,
-    TIMESTAMPDIFF(YEAR, MAKEDATE(year_value, 1), CURDATE())     AS year_difference
+    year_difference
 FROM infectious_cases_normalized
-ORDER BY year_value;
+ORDER BY year_value, record_id;
 
 
 -- =====================================================
