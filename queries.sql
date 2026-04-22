@@ -116,18 +116,23 @@ LIMIT 10;
 -- =====================================================
 
 ALTER TABLE infectious_cases_normalized
-ADD COLUMN year_difference INT NULL;
+    ADD COLUMN first_day_of_year DATE NULL,
+    ADD COLUMN today             DATE NULL,
+    ADD COLUMN year_difference   INT  NULL;
 
 UPDATE infectious_cases_normalized
-SET year_difference = TIMESTAMPDIFF(YEAR, MAKEDATE(year_value, 1), CURDATE());
+SET
+    first_day_of_year = MAKEDATE(year_value, 1),
+    today             = CURDATE(),
+    year_difference   = TIMESTAMPDIFF(YEAR, MAKEDATE(year_value, 1), CURDATE());
 
 SELECT
-    record_id,
-    entity_id,
     year_value,
+    first_day_of_year,
+    today,
     year_difference
 FROM infectious_cases_normalized
-ORDER BY year_value, record_id;
+ORDER BY year_value;
 
 
 -- =====================================================
